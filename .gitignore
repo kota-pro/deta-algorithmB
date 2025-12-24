@@ -1,0 +1,5 @@
+.history
+.DS_Store
+.vscode
+./index_X
+./index_X_asan
