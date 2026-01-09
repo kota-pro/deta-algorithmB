@@ -1,3 +1,64 @@
+# deta-algorithmB
+
+高速な編集距離検索（長さ15・アルファベット10・距離≤3）のための2系統の実装を含みます。
+
+- ベースライン（正確判定）: [koutaokamoto/prep_X.c](koutaokamoto/prep_X.c), [koutaokamoto/search_X.c](koutaokamoto/search_X.c)
+- 高速版（packed + 厳密最終確認）: [koutaokamoto/prep_10.c](koutaokamoto/prep_10.c), [koutaokamoto/search_10.c](koutaokamoto/search_10.c)
+
+## ビルド
+
+```sh
+gcc -O2 koutaokamoto/prep_X.c -o koutaokamoto/prep_X -lm
+gcc -O2 koutaokamoto/search_X.c -o koutaokamoto/search_X -lm
+
+gcc -O2 koutaokamoto/prep_10.c -o koutaokamoto/prep_10 -lm
+gcc -O2 koutaokamoto/search_10.c -o koutaokamoto/search_10 -lm
+```
+
+## 使い方
+
+入力データは [grpwk2025](grpwk2025) に配置されています。
+
+### ベースライン（テキスト索引）
+
+```sh
+# 索引生成
+./koutaokamoto/prep_X grpwk2025/db_2 > index_2_X
+./koutaokamoto/prep_X grpwk2025/db_3 > index_3_X
+
+# 検索（1e6クエリに対する 0/1 ビット列出力）
+./koutaokamoto/search_X grpwk2025/query_2 index_2_X > result_2_X
+./koutaokamoto/search_X grpwk2025/query_3 index_3_X > result_3_X
+```
+
+### 高速版（バイナリ索引 + 厳密最終確認）
+
+```sh
+# 索引生成（バイナリ）
+./koutaokamoto/prep_10 grpwk2025/db_2 > index_2_bin
+./koutaokamoto/prep_10 grpwk2025/db_3 > index_3_bin
+
+# 検索（高速・厳密最終確認あり）
+./koutaokamoto/search_10 grpwk2025/query_2 index_2_bin > result_2_10
+./koutaokamoto/search_10 grpwk2025/query_3 index_3_bin > result_3_10
+```
+
+## 推奨構成（提出）
+
+- 検索は高速版の `search_10` を使用（約14.5秒/セット）。
+- `search_10` は候補抽出後に編集距離≤3をバンドDPで厳密確認して受理する構成です。
+- ベースラインは完全一致の検証用途に残してあります（約62秒/セット）。
+
+## 参考計測（macOS）
+
+- 高速版: 約14.5秒、ones≈433k、baseline比の不一致≈110k（取りこぼし/過剰一致の差分）
+- ベースライン: 約62秒、ones≈322k（厳密判定）
+
+## 注意事項
+
+- 実行は STDIN/STDOUT を使用します。結果ファイルは 1e6文字の '0'/'1' のみ（末尾改行なし）。
+- クエリの入力は a..j も受け付けますが、内部で A..J に正規化して処理します。
+- 生成物（index_* / result_* / バイナリ）は提出前に削除してください。
 # deta-algorithmB 提出用ガイド
 
 このリポジトリには、固定長(15)・アルファベットサイズ10(A..J)の文字列データベースから、編集距離(Levenshtein)が3以下の一致があるかをクエリ毎に判定する2つのCプログラムが含まれます。
